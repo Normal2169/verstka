@@ -1,5 +1,5 @@
 async function get_Local() {
-    let response = await fetch("http://192.168.50.114:8000/api/Local/all");
+    let response = await fetch("http://localhost:8000/api/Local/all");
     if (response.ok) {
         let json = await response.json();
         return json;
