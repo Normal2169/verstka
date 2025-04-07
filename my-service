@@ -1,0 +1,38 @@
+#!/sbin/openrc-run
+
+name="my-service"
+description="my-service api"
+command="/var/www/verstka/venv/bin/python"
+command_args="/var/www/verstka/server.py"
+command_user="nobody"
+pidfile="/var/run/${name}.pid"
+logger_command="/usr/bin/logger"
+
+depend() {
+    need net
+    use logger
+}
+
+start_pre() {
+    # Вручную создаем каталог для PID-файла
+    if [ ! -d "$(dirname ${pidfile})" ]; then
+        mkdir -p "$(dirname ${pidfile})"
+        chown ${command_user}:${command_user} "$(dirname ${pidfile})"
+    fi
+}
+
+start() {
+    ebegin "Starting ${name}"
+    # Перенаправляем вывод в logger
+    start-stop-daemon --start --quiet --pidfile ${pidfile} \
+        --chdir /var/www/verstka-api \
+        --user ${command_user} \
+        --exec ${command} -- ${command_args} 2>&1 | ${logger_command} -t ${name} &
+    eend $?
+}
+
+stop() {
+    ebegin "Stopping ${name}"
+    start-stop-daemon --stop --quiet --pidfile ${pidfile}
+    eend $?
+}
