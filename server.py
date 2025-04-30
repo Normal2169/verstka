@@ -1,6 +1,6 @@
 from flask import Flask, Response, jsonify, request
 from flask_cors import CORS
-from sqlalchemy import create_engine, text, bindparam
+from sqlalchemy import create_engine, text, bindparam, INTEGER
 connection_string = "mysql+pymysql://admin:123@192.168.50.114:3306/Local"
 engine = create_engine(connection_string, echo=True)
 app = Flask(__name__)
@@ -19,7 +19,7 @@ def get_Local():
     return Response(jsonify({"status": "500", "message": "Database is down!"}), status=500)
 
 @app.route("/api/Local/<id>/upvote", methods=["PUT"])
-def upvote(id):
+def upvote(id: int):
     if request.method == "PUT":
         with engine.connect() as connection:
             raw_Local = connection.execute(text("SELECT * FROM Local"))
@@ -32,10 +32,17 @@ def upvote(id):
 def downvote(id: int):
     if request.method == "PUT":
         with engine.connect() as connection:
-            Local = connection.execute(text(f"SELECT score FROM Local WHERE id = {id}"))
+            raw_local = connection.execute(text(f"SELECT * FROM Local WHERE id = {id}"))
+            score1 = []
+            for i in raw_local.all():
+                i.append(score1.asdict())
+            return 
+
+
+            score1 = int(score)-1
             query = text(f"UPDATE article SET score =  WHERE id = {id}")
-            score -= 1
-            query = query.bindparams(bindparam("Heading", Local["score"]))
+            
+            query = query.bindparams(bindparam("score", score1))
             connection.commit()
         return jsonify({"status": "500", "message": "Database is down!"})
 def main():
